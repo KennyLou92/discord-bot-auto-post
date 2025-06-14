@@ -67,12 +67,19 @@ async def send_images():
     urls = generate_urls(version)
 
     channel = bot.get_channel(CHANNEL_ID)
+    thread_name = f"{version}"
 
-    # 檢查是否已有相同名稱的 thread
-    existing_threads = await channel.threads()
+    # 取得 active threads
+    existing_threads = list(channel.threads)
+
+    # 加入 archived threads（需 async）
+    archived_threads = await channel.archived_threads().flatten()
+    existing_threads += archived_threads
+
+    # 如果有相同 thread 名稱就 skip
     for t in existing_threads:
         if t.name == thread_name:
-            print(f"🛑 Thread '{thread_name}' already exists. Skip sending.")
+            print(f"🛑 Thread '{thread_name}' already exists (even archived). Skipping creation.")
             return
 
     # 檢查哪些圖片有效
