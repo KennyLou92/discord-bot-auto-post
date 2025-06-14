@@ -1,5 +1,4 @@
 import discord
-from discord.ext import commands
 import requests
 from datetime import datetime
 import os
@@ -12,13 +11,13 @@ intents.guilds = True
 intents.messages = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+client = discord.Client(intents=intents)
 
 def get_next_version():
     now = datetime.now()
     year = now.year + (now.month // 12)
     month = now.month % 12 + 1
-    return f"{year}{month:02d}"
+    return f"{year}{month:02d}"  # e.g., 202506
 
 def generate_urls(version):
     base = f"https://game-lgtmtmg.line-scdn.net/COMMON/G{version}/images/"
@@ -58,48 +57,51 @@ def generate_urls(version):
     ]
     return [base + path for path in paths]
 
-@bot.event
+@client.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user.name}")
+    print(f"✅ Logged in as {client.user.name}")
     await send_images()
+    await client.close()  # ⛔ 這是關鍵：執行完後結束 bot.run()
 
 async def send_images():
     version = get_next_version()
-    thread_name = version  # ✅ 只用版本號當作 thread 名稱
+    thread_name = f"{version}"
     urls = generate_urls(version)
 
-    channel = bot.get_channel(CHANNEL_ID)
-    thread_name = f"{version}"
+    channel = client.get_channel(CHANNEL_ID)
 
-    # 取得 active threads
+    if channel is None:
+        print("❌ Channel not found. Check CHANNEL_ID.")
+        return
+
     existing_threads = list(channel.threads)
 
-    # 加入 archived threads（需 async）
-    archived_threads = await channel.archived_threads().flatten()
+    # 加入 archived threads
+    archived_threads = []
+    async for thread in channel.archived_threads(limit=50):
+        archived_threads.append(thread)
+
     existing_threads += archived_threads
 
-    # 如果有相同 thread 名稱就 skip
     for t in existing_threads:
         if t.name == thread_name:
             print(f"🛑 Thread '{thread_name}' already exists (even archived). Skipping creation.")
             return
 
-    # 檢查哪些圖片有效
     valid_urls = [url for url in urls if requests.get(url).status_code == 200]
 
     if not valid_urls:
         print("ℹ️ No valid image URLs found.")
         return
 
-    # 創建新 thread 並上傳圖片
     thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
+
     for i in range(0, len(valid_urls), 10):
-        embed_objs = []
+        embeds = []
         for url in valid_urls[i:i+10]:
             embed = discord.Embed()
             embed.set_image(url=url)
-            embed_objs.append(embed)
+            embeds.append(embed)
+        await thread.send(embeds=embeds)
 
-        await thread.send(embeds=embed_objs)
-
-bot.run(TOKEN)
+client.run(TOKEN)
