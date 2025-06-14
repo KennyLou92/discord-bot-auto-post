@@ -80,6 +80,7 @@ def save_sent_log(sent_urls):
 async def on_ready():
     print(f"Logged in as {bot.user.name}")
     await send_images()
+    await bot.close()  # 關閉 bot
 
 async def send_images():
     version = get_current_version()
