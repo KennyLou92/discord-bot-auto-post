@@ -11,6 +11,11 @@ CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 # 用來記錄已發送過的圖片URL
 SENT_LOG_PATH = "sent_images.txt"
 
+# 若紀錄檔不存在，先建立一個空的
+if not os.path.exists(SENT_LOG_PATH):
+    with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
+        pass
+
 # Discord Bot intents 設定
 intents = discord.Intents.default()
 intents.guilds = True
