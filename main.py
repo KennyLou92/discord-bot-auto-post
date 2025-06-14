@@ -7,12 +7,6 @@ import os
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
-SENT_LOG_PATH = "sent_images.txt"
-
-# 確保 sent_images.txt 存在
-if not os.path.exists(SENT_LOG_PATH):
-    open(SENT_LOG_PATH, 'w').close()
-
 intents = discord.Intents.default()
 intents.guilds = True
 intents.messages = True
@@ -64,14 +58,6 @@ def generate_urls(version):
     ]
     return [base + path for path in paths]
 
-def load_sent_log():
-    with open(SENT_LOG_PATH, "r", encoding="utf-8") as f:
-        return set(line.strip() for line in f)
-
-def save_sent_log(sent_urls):
-    with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
-        f.write("\n".join(sorted(sent_urls)))
-
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user.name}")
@@ -79,31 +65,34 @@ async def on_ready():
 
 async def send_images():
     version = get_next_version()
+    thread_name = version  # ✅ 只用版本號當作 thread 名稱
     urls = generate_urls(version)
-    sent = load_sent_log()
-    new_urls = [url for url in urls if url not in sent and requests.get(url).status_code == 200]
-
-    if not new_urls:
-        print("ℹ️ No new images to send.")
-        return
 
     channel = bot.get_channel(CHANNEL_ID)
-    thread = await channel.create_thread(name=f"Update {version}", type=discord.ChannelType.public_thread)
 
-    for i in range(0, len(new_urls), 10):
+    # 檢查是否已有相同名稱的 thread
+    existing_threads = await channel.threads()
+    for t in existing_threads:
+        if t.name == thread_name:
+            print(f"🛑 Thread '{thread_name}' already exists. Skip sending.")
+            return
+
+    # 檢查哪些圖片有效
+    valid_urls = [url for url in urls if requests.get(url).status_code == 200]
+
+    if not valid_urls:
+        print("ℹ️ No valid image URLs found.")
+        return
+
+    # 創建新 thread 並上傳圖片
+    thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
+    for i in range(0, len(valid_urls), 10):
         embed_objs = []
-        group = new_urls[i:i+10]
-        for url in group:
+        for url in valid_urls[i:i+10]:
             embed = discord.Embed()
             embed.set_image(url=url)
             embed_objs.append(embed)
 
-        try:
-            await thread.send(embeds=embed_objs)
-            sent.update(group)
-        except Exception as e:
-            print(f"❌ Failed to send image group: {e}")
-
-    save_sent_log(sent)
+        await thread.send(embeds=embed_objs)
 
 bot.run(TOKEN)
