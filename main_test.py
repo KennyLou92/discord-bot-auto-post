@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import asyncio
 import requests
 from datetime import datetime
 import os
@@ -8,15 +7,12 @@ import os
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
-# 用來記錄已發送過的圖片URL
 SENT_LOG_PATH = "sent_images.txt"
 
-# 若紀錄檔不存在，先建立一個空的
+# 確保 sent_images.txt 存在
 if not os.path.exists(SENT_LOG_PATH):
-    with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
-        pass
+    open(SENT_LOG_PATH, 'w').close()
 
-# Discord Bot intents 設定
 intents = discord.Intents.default()
 intents.guilds = True
 intents.messages = True
@@ -67,20 +63,17 @@ def generate_urls(version):
     return [base + path for path in paths]
 
 def load_sent_log():
-    if os.path.exists(SENT_LOG_PATH):
-        with open(SENT_LOG_PATH, "r", encoding="utf-8") as f:
-            return set(line.strip() for line in f)
-    return set()
+    with open(SENT_LOG_PATH, "r", encoding="utf-8") as f:
+        return set(line.strip() for line in f)
 
 def save_sent_log(sent_urls):
     with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
-        f.write("\n".join(sent_urls))
+        f.write("\n".join(sorted(sent_urls)))
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user.name}")
+    print(f"✅ Logged in as {bot.user.name}")
     await send_images()
-    await bot.close()  # 關閉 bot
 
 async def send_images():
     version = get_current_version()
@@ -89,7 +82,7 @@ async def send_images():
     new_urls = [url for url in urls if url not in sent and requests.get(url).status_code == 200]
 
     if not new_urls:
-        print("No new images to send.")
+        print("ℹ️ No new images to send.")
         return
 
     channel = bot.get_channel(CHANNEL_ID)
@@ -97,15 +90,18 @@ async def send_images():
 
     for i in range(0, len(new_urls), 10):
         embed_objs = []
-        for url in new_urls[i:i+10]:
+        group = new_urls[i:i+10]
+        for url in group:
             embed = discord.Embed()
             embed.set_image(url=url)
             embed_objs.append(embed)
 
-        await thread.send(embeds=embed_objs)
+        try:
+            await thread.send(embeds=embed_objs)
+            sent.update(group)
+        except Exception as e:
+            print(f"❌ Failed to send image group: {e}")
 
-    # 記錄已發送的 URL
-    sent.update(new_urls)
     save_sent_log(sent)
 
 bot.run(TOKEN)
