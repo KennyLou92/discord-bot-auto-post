@@ -1,12 +1,28 @@
 import discord
-import aiohttp
-import asyncio
-import os
-from datetime import datetime
 from discord.ext import commands
+import asyncio
+import requests
+from datetime import datetime
+import os
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))  # 文字頻道 ID
+TOKEN = os.getenv("DISCORD_TOKEN")
+CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
+
+# 用來記錄已發送過的圖片URL
+SENT_LOG_PATH = "sent_images.txt"
+
+# 若紀錄檔不存在，先建立一個空的
+if not os.path.exists(SENT_LOG_PATH):
+    with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
+        pass
+
+# Discord Bot intents 設定
+intents = discord.Intents.default()
+intents.guilds = True
+intents.messages = True
+intents.message_content = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 def get_current_version():
     now = datetime.now()
@@ -50,47 +66,40 @@ def generate_urls(version):
     ]
     return [base + path for path in paths]
 
-intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=intents)
+def load_sent_log():
+    if os.path.exists(SENT_LOG_PATH):
+        with open(SENT_LOG_PATH, "r", encoding="utf-8") as f:
+            return set(line.strip() for line in f)
+    return set()
+
+def save_sent_log(sent_urls):
+    with open(SENT_LOG_PATH, "w", encoding="utf-8") as f:
+        f.write("\n".join(sent_urls))
 
 @bot.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
+    print(f"Logged in as {bot.user.name}")
     await send_images()
-    await bot.close()
 
 async def send_images():
     version = get_current_version()
     urls = generate_urls(version)
+    sent = load_sent_log()
+    new_urls = [url for url in urls if url not in sent and requests.get(url).status_code == 200]
 
-    valid_urls = []
-    async with aiohttp.ClientSession() as session:
-        for url in urls:
-            try:
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        valid_urls.append(url)
-            except:
-                continue
-
-    if not valid_urls:
-        print("❌ No valid image URLs found.")
+    if not new_urls:
+        print("No new images to send.")
         return
 
     channel = bot.get_channel(CHANNEL_ID)
-    thread = await channel.create_thread(
-        name=f"G{version}",
-        type=discord.ChannelType.public_thread
-    )
+    thread = await channel.create_thread(name=f"Update {version}", type=discord.ChannelType.public_thread)
 
-    # 發送圖片 embed（可分批）
-    for i, url in enumerate(valid_urls):
-        embed = discord.Embed()
-        if i == 0:
-            embed.title = f"Version G{version}"
-        embed.set_image(url=url)
-        await thread.send(embed=embed)
-        await asyncio.sleep(1)
+    for i in range(0, len(new_urls), 10):
+        embeds = [{"image": {"url": url}} for url in new_urls[i:i+10]]
+        await thread.send(embeds=embeds)
 
-if __name__ == "__main__":
-    bot.run(DISCORD_TOKEN)
+    # 記錄已發送的 URL
+    sent.update(new_urls)
+    save_sent_log(sent)
+
+bot.run(TOKEN)
