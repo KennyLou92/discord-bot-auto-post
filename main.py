@@ -97,8 +97,13 @@ async def send_images():
     thread = await channel.create_thread(name=f"Update {version}", type=discord.ChannelType.public_thread)
 
     for i in range(0, len(new_urls), 10):
-        embeds = [{"image": {"url": url}} for url in new_urls[i:i+10]]
-        await thread.send(embeds=embeds)
+        embed_objs = []
+        for url in new_urls[i:i+10]:
+            embed = discord.Embed()
+            embed.set_image(url=url)
+            embed_objs.append(embed)
+
+        await thread.send(embeds=embed_objs)
 
     # 記錄已發送的 URL
     sent.update(new_urls)
