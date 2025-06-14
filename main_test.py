@@ -72,8 +72,11 @@ async def send_images():
     # 取得 active threads
     existing_threads = list(channel.threads)
 
-    # 加入 archived threads（需 async）
-    archived_threads = await channel.archived_threads().flatten()
+    # 加入 archived threads（需 async for）
+    archived_threads = []
+    async for thread in channel.archived_threads(limit=50):
+        archived_threads.append(thread)
+
     existing_threads += archived_threads
 
     # 如果有相同 thread 名稱就 skip
