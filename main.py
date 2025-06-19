@@ -43,7 +43,6 @@ def generate_urls(version):
         "select/select02_list_tw.png",
         "select/select03_head_tw.png",
         "select/select03_list_tw.png",
-        "select/select03_head_tw.png",
         "pick/pick01_img_tw.png",
         "pick/pick01_limit_tw.png",
         "pick/pick02_img_tw.png",
