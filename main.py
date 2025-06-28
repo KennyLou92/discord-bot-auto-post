@@ -31,6 +31,7 @@ def generate_urls(version):
         "event_banner/index_doubleup_2_tw.png",
         "box/box01_l_tw.png",
         "box/box02_l_tw.png",
+        "box/box03_l_tw.png",
         "box/box03_z_tw.png",
         "box/list_01_l_tw.png",
         "box/list_02_l_tw.png",
