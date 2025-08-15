@@ -55,6 +55,7 @@ def generate_urls(version):
         "event/sticker_header_tw.png",
         "event/scratch_header_tw.png",
         "bingo/bingo_header_tw.png",
+        "playerlevels/playerlevels_tw.png"
     ]
     return [base + path for path in paths]
 
