@@ -40,6 +40,8 @@ def generate_urls(version):
         "box/list_04_l_tw.png",
         "box/list_05_l_tw.png",
         "settsum/settsum_tw_02.png",
+        "pair/pair_tw_01.png",
+        "pair/pair_tw_02.png",
         "select/select01_head_tw.png",       
         "select/select01_list_tw.png",
         "select/select02_head_tw.png",
