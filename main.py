@@ -13,11 +13,10 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 
-def get_next_version():
+# ✅ 改為當前月份版本號
+def get_current_version():
     now = datetime.now()
-    year = now.year + (now.month // 12)
-    month = now.month % 12
-    return f"{year}{month:02d}"  # e.g., 202506
+    return f"{now.year}{now.month:02d}"  # e.g., 202511
 
 def generate_urls(version):
     base = f"https://game-lgtmtmg.line-scdn.net/COMMON/G{version}/images/"
@@ -66,10 +65,10 @@ def generate_urls(version):
 async def on_ready():
     print(f"✅ Logged in as {client.user.name}")
     await send_images()
-    await client.close()  # ⛔ 這是關鍵：執行完後結束 bot.run()
+    await client.close()  # ⛔ 執行完後自動關閉 bot
 
 async def send_images():
-    version = get_next_version()
+    version = get_current_version()  # ✅ 改用當前月份
     thread_name = f"{version}"
     urls = generate_urls(version)
 
@@ -81,7 +80,7 @@ async def send_images():
 
     existing_threads = list(channel.threads)
 
-    # 加入 archived threads
+    # 包含已封存 threads
     archived_threads = []
     async for thread in channel.archived_threads(limit=50):
         archived_threads.append(thread)
