@@ -16,7 +16,7 @@ client = discord.Client(intents=intents)
 def get_next_version():
     now = datetime.now()
     year = now.year + (now.month // 12)
-    month = now.month % 12 + 1
+    month = now.month % 12
     return f"{year}{month:02d}"  # e.g., 202506
 
 def generate_urls(version):
