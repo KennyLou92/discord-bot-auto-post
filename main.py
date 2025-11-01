@@ -1,5 +1,6 @@
 import discord
 import requests
+from datetime import datetime
 import os
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -12,8 +13,11 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 
-# ✅ 固定版本號
-VERSION = "202511"
+def get_next_version():
+    now = datetime.now()
+    year = now.year + (now.month // 12)
+    month = now.month % 12 + 1
+    return f"{year}{month:02d}"  # e.g., 202506
 
 def generate_urls(version):
     base = f"https://game-lgtmtmg.line-scdn.net/COMMON/G{version}/images/"
@@ -62,10 +66,10 @@ def generate_urls(version):
 async def on_ready():
     print(f"✅ Logged in as {client.user.name}")
     await send_images()
-    await client.close()  # ⛔ 執行完後關閉 bot
+    await client.close()  # ⛔ 這是關鍵：執行完後結束 bot.run()
 
 async def send_images():
-    version = VERSION  # ✅ 固定版本
+    version = get_next_version()
     thread_name = f"{version}"
     urls = generate_urls(version)
 
@@ -77,10 +81,11 @@ async def send_images():
 
     existing_threads = list(channel.threads)
 
-    # 加入封存 threads
+    # 加入 archived threads
     archived_threads = []
     async for thread in channel.archived_threads(limit=50):
         archived_threads.append(thread)
+
     existing_threads += archived_threads
 
     for t in existing_threads:
@@ -88,14 +93,12 @@ async def send_images():
             print(f"🛑 Thread '{thread_name}' already exists (even archived). Skipping creation.")
             return
 
-    # ✅ 檢查哪些圖片網址可用
     valid_urls = [url for url in urls if requests.get(url).status_code == 200]
 
     if not valid_urls:
         print("ℹ️ No valid image URLs found.")
         return
 
-    # 建立 thread 並傳送圖片
     thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
 
     for i in range(0, len(valid_urls), 10):
@@ -107,4 +110,3 @@ async def send_images():
         await thread.send(embeds=embeds)
 
 client.run(TOKEN)
-
