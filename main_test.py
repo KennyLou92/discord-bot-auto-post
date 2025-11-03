@@ -27,21 +27,24 @@ def generate_urls(version):
         "event_banner/itemsale_tw.png",
         "event_banner/info_bnr_boxbonus_tw.png",
         "event_banner/index_doubleup_2_tw.png",
+        "event_banner/index_missonuptodays_date_tw.png",
         "box/box01_l_tw.png",
         "box/box02_l_tw.png",
+        "box/box03_l_tw.png",
         "box/box03_z_tw.png",
         "box/list_01_l_tw.png",
         "box/list_02_l_tw.png",
         "box/list_03_l_tw.png",
         "box/list_04_l_tw.png",
         "box/list_05_l_tw.png",
+        "pair/pair_tw_01.png",
+        "pair/pair_tw_02.png",
         "select/select01_head_tw.png",       
         "select/select01_list_tw.png",
         "select/select02_head_tw.png",
         "select/select02_list_tw.png",
         "select/select03_head_tw.png",
         "select/select03_list_tw.png",
-        "select/select03_head_tw.png",
         "pick/pick01_img_tw.png",
         "pick/pick01_limit_tw.png",
         "pick/pick02_img_tw.png",
@@ -52,6 +55,7 @@ def generate_urls(version):
         "event/sticker_header_tw.png",
         "event/scratch_header_tw.png",
         "bingo/bingo_header_tw.png",
+        "playerlevels/playerlevels_tw.png"
     ]
     return [base + path for path in paths]
 
