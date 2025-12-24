@@ -28,7 +28,7 @@ def generate_urls(version):
         "event_banner/heartsale_tw.png",
         "event_banner/itemsale_tw.png",
         "event_banner/info_bnr_boxbonus_tw.png",
-        "event_banner/index_doubleup_2_tw.png",
+        "event_banner/index_doubleup_3_tw.png",
         "event_banner/index_missonuptodays_date_tw.png",
         "box/box01_l_tw.png",
         "box/box02_l_tw.png",
