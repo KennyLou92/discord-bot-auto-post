@@ -34,6 +34,8 @@ def generate_urls(version):
         "box/box02_l_tw.png",
         "box/box03_l_tw.png",
         "box/box03_z_tw.png",
+        "plus/plus_01_tw.png",
+        "plus/plus_02_tw.png",
         "box/list_01_l_tw.png",
         "box/list_02_l_tw.png",
         "box/list_03_l_tw.png",
