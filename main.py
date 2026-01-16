@@ -30,6 +30,7 @@ def generate_urls(version):
         "event_banner/info_bnr_boxbonus_tw.png",
         "doubleup/dressup_3_tw.png",
         "event_banner/index_missonuptodays_date_tw.png",
+        "event_banner/index_r_mission_date_tw.png",
         "box/box01_l_tw.png",
         "box/box02_l_tw.png",
         "box/box03_l_tw.png",
@@ -60,6 +61,7 @@ def generate_urls(version):
         "raffle/raffle_header_tw.png",
         "event/sticker_header_tw.png",
         "event/scratch_header_tw.png",
+        "r_mission/r_mission_tw.png",
         "bingo/bingo_header_tw.png",
         "playerlevels/playerlevels_tw.png"
     ]
